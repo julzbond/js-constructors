@@ -20,6 +20,16 @@
    * e.g. console.log(a, b, c); <-- no commas, please use string concatenation.
    */
 
+function Spell (name, cost, description) {
+  this.name = name;
+  this.cost = cost;
+  this.description = description;
+  this.printDetails = function(){
+    console.log("name: " + this.name + ", " + "cost: " + this.cost + ", " + "description: " + this.description);
+  };
+  return this;
+}
+
 /**
  * A spell that deals damage.
  * We want to keep this code DRY (Don't Repeat Yourself).
@@ -45,6 +55,13 @@
  * @property {string} description
  */
 
+function DamageSpell (name, cost, damage, description){
+  Spell.call(this, name, cost, description);
+  this.damage = damage;
+ }
+
+DamageSpell.prototype = Object.create(Spell.prototype);
+
 /**
  * Now that you've created some spells, let's create
  * `Spellcaster` objects that can use them!
@@ -59,6 +76,12 @@
  * @property {boolean} isAlive  Default value should be `true`.
  */
 
+function Spellcaster (name, health, mana){
+  this.name = name;
+  this.health = health;
+  this.mana = mana;
+  this.isAlive = true;
+
   /**
    * The spellcaster loses health equal to `damage`.
    * Health should never be negative.
@@ -69,6 +92,14 @@
    * @param  {number} damage  Amount of damage to deal to the spellcaster
    */
 
+  this.inflictDamage = function (damage){
+    this.health -= damage;
+    if (this.health <= 0) {
+      this.health = 0;
+      this.isAlive = false;
+    }
+  }
+
   /**
    * Reduces the spellcaster's mana by `cost`.
    * Mana should only be reduced only if there is enough mana to spend.
@@ -78,6 +109,14 @@
    * @return {boolean} success  Whether mana was successfully spent.
    */
 
+   this.spendMana = function (cost){
+    var success = false;
+    if (cost <= this.mana){
+      this.mana -= cost;
+      success = true;
+    }
+    return success;
+   }
   /**
    * Allows the spellcaster to cast spells.
    * The first parameter should either be a `Spell` or `DamageSpell`.
@@ -103,3 +142,14 @@
    * @param  {Spellcaster} target         The spell target to be inflicted.
    * @return {boolean}                    Whether the spell was successfully cast.
    */
+
+   this.invoke = function (spell, target){
+    if (!(spell instanceof Spell) || this.mana < spell.cost || (spell instanceof DamageSpell && !target)) {
+      return false;
+    }
+    if (target instanceof Spellcaster) {
+      target.inflictDamage(spell.damage);
+    }
+    return this.spendMana(spell.cost);
+   }
+}
